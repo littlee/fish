@@ -18,6 +18,18 @@ var loadState = {
     game.load.image('user', 'images/user.png')
     game.load.image('wood_table', 'images/wood_table.png')
     game.load.spritesheet('f1', 'images/f1.png', 200, 111, 3);
+    game.load.spritesheet('f2', 'images/f2.png', 200, 111, 3);
+    game.load.spritesheet('f3', 'images/f3.png', 143, 90, 3);
+    game.load.spritesheet('f4', 'images/f4.png', 143, 90, 3);
+    game.load.spritesheet('f5', 'images/f5.png', 109, 50, 3);
+    game.load.spritesheet('f6', 'images/f6.png', 109, 50, 3);
+    game.load.spritesheet('f7', 'images/f7.png', 64, 49, 3);
+    game.load.spritesheet('f8', 'images/f8.png', 64, 49, 3);
+    game.load.spritesheet('f8', 'images/f8.png', 64, 49, 3);
+    game.load.spritesheet('f9', 'images/f9.png', 47, 39, 3);
+    game.load.spritesheet('f10', 'images/f10.png', 47, 39, 3);
+    game.load.spritesheet('f11', 'images/f11.png', 55, 24, 3);
+    game.load.spritesheet('f12', 'images/f12.png', 55, 24, 3);
     game.load.spritesheet('throw_btn', 'images/throw_btn.png', 180, 130, 2)
   },
 

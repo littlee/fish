@@ -6,9 +6,38 @@ var textStyle = {
   fill: '#fff'
 }
 
+function randomInt(a, b) {
+  return game.rnd.integerInRange(a, b)
+}
+
+function isHeadOnLeft(key) {
+  return parseInt(key.slice(1), 10) % 2 !== 0
+}
+
 var playState = {
   create: function() {
     this.bg = game.add.image(0, 0, 'bg')
+
+    this.fishes = game.add.group()
+    this.fishes.enableBody = true
+    this.fishes.physicsBodyType = Phaser.Physics.ARCADE
+    for (var i = 0; i < 10; i++) {
+      var r = randomInt(1, 12)
+      var headOnLeft = r % 2 !== 0 // 单数
+      var x = headOnLeft ? randomInt(580, 620) : randomInt(-20, 20)
+      var y = randomInt(500, 800)
+      var fishItem = this.fishes.create(x, y, 'f' + r)
+      fishItem.body.velocity.x = headOnLeft ? -1 * randomInt(0, 100) : randomInt(0, 100)
+      fishItem.body.gravity.x = 0
+      fishItem.checkWorldBounds = true
+    }
+    this.fishes.callAll('animations.add', 'animations', 'swim')
+    this.fishes.callAll('animations.play', 'animations', 'swim', 10, true)
+    this.fishes.setAll('checkWorldBounds', true)
+    this.fishes.setAll('outOfBoundsKill', true)
+
+    game.time.events.loop(500, this._updateFishes, this)
+
 
     this.betPop = game.add.group()
     this.betPopBg = game.add.sprite(53, 650, 'bet_pop')
@@ -80,10 +109,12 @@ var playState = {
     this.notchWin = game.add.image(430, 942, 'notch_win')
     this.notchWinText = game.add.text(483, 959, '赢得: ' + this._currentWin, textStyle)
 
-    this.fishPole = game.add.sprite(game.world.width, 136, 'fish_pole')
-    this.fishPole.anchor.set(1, 0)
+    this.fishPole = game.add.sprite(game.world.width, 300, 'fish_pole')
+    this.fishPole.anchor.set(1, 0.5)
+    this.fishPole.angle = 90
 
     this.jackpot = game.add.image(420, 100, 'jackpot')
+
     this.jackpotText = game.add.text(0, 0, this._jackpot, {
       fontSize: '32px',
       fill: '#F8F042',
@@ -101,7 +132,7 @@ var playState = {
       boundsAlignH: 'center',
       boundsAlignV: 'middle'
     })
-    this.currentCoinText.setTextBounds(172, 35 ,109, 44)
+    this.currentCoinText.setTextBounds(172, 35 ,110, 44)
 
     this.luckyValue = game.add.image(30, 70, 'lucky_value')
     this.luckyValuePro = game.add.image(103, 100, 'lucky_value_p')
@@ -136,12 +167,17 @@ var playState = {
   },
 
   update: function() {
+    // var d = this.fishes.getFirstDead()
+    // if (d) {
+    //   console.log(d)
+    // }
   },
 
   render: function() {
     // game.debug.geom(this.ddd,'#0fffff');
   },
 
+  _fishing: false,
   _fishScore: 20,
   _fishCount: 2,
   _currentCoin: 88888888,
@@ -157,7 +193,29 @@ var playState = {
   },
 
   _throwBtnDown: function() {
+    if (this._fishing) {
+      this._withdrawPole()
+      return
+    }
     this.throwBtn.animations.frame = 1
+    
+    this._throwPole()
+  },
+
+  _throwPole: function() {
+    this._fishing = true
+    this.throwBtn.alpha = 0.5
+    game.add.tween(this.fishPole).to({
+      angle: 0
+    }, 500, Phaser.Easing.Back.Out, true)
+  },
+
+  _withdrawPole: function() {
+    this._fishing = false
+    this.throwBtn.alpha = 1
+    game.add.tween(this.fishPole).to({
+      angle: 90
+    }, 500, Phaser.Easing.Back.Out, true)
   },
 
   _throwBtnUp: function() {
@@ -175,5 +233,15 @@ var playState = {
     game.add.tween(this.betPop.position).to({
       y: nY
     }, 500, Phaser.Easing.Back.Out, true)
+  },
+
+  _updateFishes: function() {
+    this.fishes.forEach(function(item) {
+      if (item.alive && game.rnd.sign() === 1) {
+        var headOnLeft = isHeadOnLeft(item.key)
+        item.body.velocity.x = headOnLeft ? -1 * randomInt(0, 200) : randomInt(0, 200)
+        item.body.gravity.x = headOnLeft ? -1 * randomInt(0, 100) : randomInt(0, 100)
+      }
+    })
   }
 }
