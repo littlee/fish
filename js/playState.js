@@ -229,7 +229,8 @@ var playState = {
       fontSize: 50
     })
     this.fishScoreText.setShadow(2, 2, 'rgba(6,68,142,0.7)', 1)
-    this.fishScoreText.x = -65
+    this.fishScoreText.x = -100
+    this.fishScoreText.alpha = 0
 
     this.ddd = new Phaser.Rectangle(172, 35, 109, 44)
   },
@@ -252,6 +253,8 @@ var playState = {
   _jackpot: 12345678,
   _currentBet: 100,
   _currentWin: 0,
+  _t3: null,
+  _t10: null,
 
   _updateFishCount: function() {
     this._fishCount++
@@ -273,6 +276,12 @@ var playState = {
   _updateFishScore: function(sprite, tween, score) {
     this._fishScore += score
     this.fishScoreText.setText('+ ' + this._fishScore)
+    this.fishScoreText.x = -100
+    this.fishScoreText.alpha = 0
+    game.add.tween(this.fishScoreText).to({
+      x: 15,
+      alpha: 1
+    }, 500, Phaser.Easing.Cubic.Out, true)
   },
 
   _changeBet: function(v) {
@@ -290,7 +299,6 @@ var playState = {
 
   _throwBtnDown: function() {
     if (this._fishing) {
-      this._withdrawPole()
       return
     }
     this.throwBtn.animations.frame = 1
@@ -310,7 +318,22 @@ var playState = {
       true
     )
 
-    // game.time.events.add(Phaser.Timer.SECOND * 3, )
+    this._t3 = game.time.events.add(3000, this._after3, this)
+    this._t10 = game.time.events.add(10000, this._after10, this)
+  },
+
+  _after3: function() {
+    if (this._fishCount === 0) {
+      this._withdrawPole()
+      game.time.events.remove(this._t10)
+      // 增加幸运值
+    }
+  },
+
+  _after10: function() {
+    this._withdrawPole()
+
+    // 增加金币
   },
 
   _withdrawPole: function() {
@@ -332,6 +355,16 @@ var playState = {
     game.add.tween(this.fishCountGroup).to(
       {
         x: -187,
+        alpha: 0
+      },
+      500,
+      Phaser.Easing.Cubic.Out,
+      true
+    )
+
+    game.add.tween(this.fishScoreText).to(
+      {
+        x: -100,
         alpha: 0
       },
       500,
