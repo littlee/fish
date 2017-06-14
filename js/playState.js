@@ -226,13 +226,19 @@ var playState = {
 
     this.coins = game.add.group()
     this.coinsTween = []
+    this.coinsTweenChain = []
     for (var j = 0; j < 10; j++) {
       var coinItem = this.coins.create(100, 100, 'coin')
-      // this.coinsTween[j] = game.tween.add(coinItem).to({
-      //   x: 200,
-      //   y: 200
-      // }, 500)
+      this.coinsTween[j] = game.add.tween(coinItem).to({
+        x: 200,
+        y: 50
+      }, 500, Phaser.Easing.Cubic.Out, false, 100 + j * 150)
+      this.coinsTweenChain[j] = game.add.tween(coinItem).to({
+        alpha: 0
+      }, 500, Phaser.Easing.Cubic.Out, false)
+      this.coinsTween[j].chain(this.coinsTweenChain[j])
     }
+    this.coins.setAll('alpha', 0)
 
     this.fishCountGroup = game.add.group()
     this.fishCount = game.add.sprite(0, 285, 'fish_count')
@@ -371,12 +377,23 @@ var playState = {
     // 增加金币
   },
 
+  _slideCoins: function() {
+    this.coins.setAll('alpha', 1)
+    this.coins.setAll('x', 100)
+    this.coins.setAll('y', 100)
+    this.coinsTween.forEach(function(item) {
+      item.start()
+    })
+  },
+
   _withdrawPole: function() {
     this._fishing = false
     this.throwBtn.alpha = 1
 
     this._fishScore = 0
     this._fishCount = 0
+
+    this._slideCoins()
 
     game.add.tween(this.fishPole).to(
       {
