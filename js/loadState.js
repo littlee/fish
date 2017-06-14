@@ -18,6 +18,7 @@ var loadState = {
     game.load.image('user', 'images/user.png')
     game.load.image('wood_table', 'images/wood_table.png')
     game.load.image('coin', 'images/coin.png')
+    game.load.image('overlay', 'images/overlay.png')
     game.load.spritesheet('f1', 'images/f1.png', 200, 111, 3);
     game.load.spritesheet('f2', 'images/f2.png', 200, 111, 3);
     game.load.spritesheet('f3', 'images/f3.png', 143, 90, 3);

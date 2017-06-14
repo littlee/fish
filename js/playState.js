@@ -264,6 +264,9 @@ var playState = {
     this.fishScoreText.x = -100
     this.fishScoreText.alpha = 0
 
+    /* 宝箱界面 */
+    this.overlay = game.add.image(0, 0, 'overlay')
+
     this.ddd = new Phaser.Rectangle(172, 35, 109, 44)
   },
 
