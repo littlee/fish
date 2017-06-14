@@ -21,6 +21,21 @@ var fishWidth = {
   f12: 55
 }
 
+var fishFactor = {
+  f1: 15,
+  f2: 15,
+  f3: 3,
+  f4: 3,
+  f5: 2,
+  f6: 2,
+  f7: 1,
+  f8: 1,
+  f9: 0.6,
+  f10: 0.6,
+  f11: 0.3,
+  f12: 0.3
+}
+
 function randomInt(a, b) {
   return game.rnd.integerInRange(a, b)
 }
