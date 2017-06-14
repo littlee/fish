@@ -84,26 +84,26 @@ var playState = {
     this.fishes = game.add.group()
     this.fishes.enableBody = true
     this.fishes.physicsBodyType = Phaser.Physics.ARCADE
-    for (var i = 0; i < 10; i++) {
-      var r = randomInt(1, 12)
-      var headOnLeft = r % 2 !== 0
-      var key = 'f' + r
-      var x = getInitFishX(headOnLeft, key)
-      var y = getInitFishY()
-      var fishItem = this.fishes.create(x, y, key)
-      fishItem.body.velocity.x = getInitFishVelocity(headOnLeft)
-      fishItem.body.gravity.x = getInitFishGravity(headOnLeft)
-    }
-    this.fishes.callAll('animations.add', 'animations', 'swim')
-    this.fishes.callAll('animations.play', 'animations', 'swim', 10, true)
-    this.fishes.setAll('checkWorldBounds', true)
-    this.fishes.setAll('outOfBoundsKill', true)
-    this.fishes.setAll('anchor.x', 0.5)
-    this.fishes.setAll('anchor.y', 0.5)
+    // for (var i = 0; i < 10; i++) {
+    //   var r = randomInt(1, 12)
+    //   var headOnLeft = r % 2 !== 0
+    //   var key = 'f' + r
+    //   var x = getInitFishX(headOnLeft, key)
+    //   var y = getInitFishY()
+    //   var fishItem = this.fishes.create(x, y, key)
+    //   fishItem.body.velocity.x = getInitFishVelocity(headOnLeft)
+    //   fishItem.body.gravity.x = getInitFishGravity(headOnLeft)
+    // }
+    // this.fishes.callAll('animations.add', 'animations', 'swim')
+    // this.fishes.callAll('animations.play', 'animations', 'swim', 10, true)
+    // this.fishes.setAll('checkWorldBounds', true)
+    // this.fishes.setAll('outOfBoundsKill', true)
+    // this.fishes.setAll('anchor.x', 0.5)
+    // this.fishes.setAll('anchor.y', 0.5)
 
-    game.time.events.loop(1000, this._updateFishesMove, this)
-    game.time.events.loop(500, this._updateFishesAdd, this)
-    game.time.events.loop(500, this._updateFishesCatch, this)
+    // game.time.events.loop(1000, this._updateFishesMove, this)
+    // game.time.events.loop(500, this._updateFishesAdd, this)
+    // game.time.events.loop(500, this._updateFishesCatch, this)
 
     this.betPop = game.add.group()
     this.betPopBg = game.add.sprite(53, 650, 'bet_pop')
@@ -202,17 +202,9 @@ var playState = {
       textStyle
     )
 
-    this.currentCoin = game.add.image(110, 20, 'current_coin')
-    this.currentCoinText = game.add.text(0, 0, this._currentCoin, {
-      fontSize: '20px',
-      fill: '#fff',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle'
-    })
-    this.currentCoinText.setTextBounds(172, 35, 110, 44)
-
     this.luckyValue = game.add.image(30, 70, 'lucky_value')
     this.luckyValuePro = game.add.image(103, 100, 'lucky_value_p')
+    this.luckyValuePro.scale.x = 0
 
     this.user = game.add.image(10, 10, 'user')
     this.userName = game.add.text(0, 0, '用户名', {
@@ -222,6 +214,25 @@ var playState = {
       boundsAlignV: 'middle'
     })
     this.userName.setTextBounds(10, 70, 85, 24)
+
+    this.currentCoin = game.add.image(110, 20, 'current_coin')
+    this.currentCoinText = game.add.text(0, 0, this._currentCoin, {
+      fontSize: '20px',
+      fill: '#fff',
+      boundsAlignH: 'center',
+      boundsAlignV: 'middle'
+    })
+    this.currentCoinText.setTextBounds(172, 35, 110, 44)
+
+    this.coins = game.add.group()
+    this.coinsTween = []
+    for (var j = 0; j < 10; j++) {
+      var coinItem = this.coins.create(100, 100, 'coin')
+      // this.coinsTween[j] = game.tween.add(coinItem).to({
+      //   x: 200,
+      //   y: 200
+      // }, 500)
+    }
 
     this.fishCountGroup = game.add.group()
     this.fishCount = game.add.sprite(0, 285, 'fish_count')
@@ -264,12 +275,14 @@ var playState = {
   _fishing: false,
   _fishScore: 0,
   _fishCount: 0,
-  _currentCoin: 88888888,
+  _currentCoin: 1000,
   _jackpot: 12345678,
   _currentBet: 100,
   _currentWin: 0,
+  _currentLuckValue: 0,
   _t3: null,
   _t10: null,
+
 
   _updateFishCount: function() {
     this._fishCount++
@@ -342,6 +355,13 @@ var playState = {
       this._withdrawPole()
       game.time.events.remove(this._t10)
       // 增加幸运值
+      if (this._currentLuckValue === 10) {
+        // 打开宝箱
+      }
+      else {
+        this._currentLuckValue++
+        this.luckyValuePro.scale.x = this._currentLuckValue / 10
+      }
     }
   },
 
