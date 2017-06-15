@@ -178,16 +178,15 @@ var playState = {
     this.woodTable = game.add.image(0, game.world.height, 'wood_table')
     this.woodTable.anchor.set(0, 1)
 
-    this.throwBtn = game.add.sprite(
+    this.throwBtn = game.add.button(
       game.world.centerX,
       game.world.height - 15,
-      'throw_btn'
+      'throw_btn',
+      this._throwBtnDown,
+      this,
+      0,0,1,0
     )
     this.throwBtn.anchor.set(0.5, 1)
-    this.throwBtn.animations.add('push')
-    this.throwBtn.inputEnabled = true
-    this.throwBtn.events.onInputDown.add(this._throwBtnDown, this)
-    this.throwBtn.events.onInputUp.add(this._throwBtnUp, this)
 
     this.notchBet = game.add.image(35, 942, 'notch_bet')
     this.notchBet.inputEnabled = true
@@ -266,8 +265,52 @@ var playState = {
 
     /* 宝箱界面 */
     this.overlay = game.add.image(0, 0, 'overlay')
+    this.boxFrame = game.add.image(21, 25, 'box_frame')
+    this.boxQuitBtn = game.add.button(25, 60, 'box_quit_btn', this._quitBox, this)
+    this.boxAddCoinBtn = game.add.button(417, 350, 'box_add_coin', this._boxAddCoin, this)
+    this.boxCoinText = game.add.text(0, 0, this._boxCoin, {
+      fontSize: 30,
+      fill: '#fff',
+      boundsAlignH: 'center',
+      boundsAlignV: 'middle'
+    })
+    this.boxCoinText.setTextBounds(270, 350, 120, 50)
 
-    this.ddd = new Phaser.Rectangle(172, 35, 109, 44)
+    this.boxStepText = game.add.text(0, 0, this._boxStep, {
+      fill: '#fff',
+      stroke: '#000',
+      strokeThickness: 4,
+      fontSize: 24,
+      boundsAlignH: 'center',
+      boundsAlignV: 'middle'
+    })
+    this.boxStepText.setTextBounds(100, 500, 450, 55)
+
+    this.boxLeft = game.add.sprite(75, 640, 'box')
+    this.boxLeft.inputEnabled = true
+    this.boxLeft.events.onInputDown.add(this._openBoxLeft, this)
+    this.pearlLeft = game.add.image(104, 600, 'pearl')
+
+    this.boxRight = game.add.sprite(375, 640, 'box')
+    this.boxRight.inputEnabled = true
+    this.boxRight.events.onInputDown.add(this._openBoxRight, this)
+    this.pearlRight = game.add.image(412, 600, 'pearl')
+
+    this.boxGuessPanel = game.add.image(game.world.centerX, 580, 'box_guess_panel')
+    this.boxGuessPanel.anchor.setTo(0.5, 0)
+
+    this.boxGreatBtn = game.add.button(game.world.centerX, 597, 'box_great_btn', this._guessGreat, this)
+    this.boxGreatBtn.anchor.setTo(0.5, 0)
+    this.boxLessBtn = game.add.button(game.world.centerX, 712, 'box_less_btn', this._guessLess, this)
+    this.boxLessBtn.anchor.setTo(0.5, 0)
+
+    this.starGroup = game.add.group()
+    for(var k = 0; k < 10; k++) {
+      this.starGroup.create(54 + k * 54, 900, 'star')
+    }
+    this.starGroup.children[0].frame = 1
+
+    this.ddd = new Phaser.Rectangle(100, 495, 450, 55)
   },
 
   update: function() {
@@ -291,6 +334,10 @@ var playState = {
   _currentLuckValue: 0,
   _t3: null,
   _t10: null,
+
+  // 宝箱
+  _boxCoin: 100,
+  _boxStep: '任选一个宝箱（内含数字0-9）打开',
 
 
   _updateFishCount: function() {
@@ -338,13 +385,12 @@ var playState = {
     if (this._fishing) {
       return
     }
-    this.throwBtn.animations.frame = 1
-
     this._throwPole()
   },
 
   _throwPole: function() {
     this._fishing = true
+    this.throwBtn.inputEnabled = false
     this.throwBtn.alpha = 0.5
     game.add.tween(this.fishPole).to(
       {
@@ -391,6 +437,7 @@ var playState = {
 
   _withdrawPole: function() {
     this._fishing = false
+    this.throwBtn.inputEnabled = true
     this.throwBtn.alpha = 1
 
     this._fishScore = 0
@@ -432,10 +479,6 @@ var playState = {
         item.kill()
       }
     })
-  },
-
-  _throwBtnUp: function() {
-    this.throwBtn.animations.frame = 0
   },
 
   _notchBetDown: function() {
@@ -537,5 +580,30 @@ var playState = {
       // 计算金币
       tw.onComplete.addOnce(this._updateFishScore, this, 1, 10)
     }
+  },
+
+  // 宝箱函数
+  _quitBox: function() {
+    console.log('quit')
+  },
+
+  _boxAddCoin: function() {
+    console.log('add')
+  },
+
+  _openBoxLeft: function() {
+    this.boxLeft.frame = 1
+  },
+
+  _openBoxRight: function() {
+    this.boxRight.frame = 1
+  },
+
+  _guessGreat: function() {
+    console.log('great')
+  },
+
+  _guessLess: function() {
+    console.log('less')
   }
 }

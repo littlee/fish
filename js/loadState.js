@@ -19,6 +19,16 @@ var loadState = {
     game.load.image('wood_table', 'images/wood_table.png')
     game.load.image('coin', 'images/coin.png')
     game.load.image('overlay', 'images/overlay.png')
+    game.load.image('box_quit_btn', 'images/box_quit_btn.png')
+    game.load.image('box_rule', 'images/box_rule.png')
+    game.load.image('box_frame', 'images/box_frame.png')
+    game.load.image('box_add_coin', 'images/box_add_coin.png')
+    game.load.image('pearl', 'images/pearl.png')
+    game.load.image('box_guess_panel', 'images/box_guess_panel.png')
+    game.load.image('box_less_btn', 'images/box_less_btn.png')
+    game.load.image('box_great_btn', 'images/box_great_btn.png')
+
+
     game.load.spritesheet('f1', 'images/f1.png', 200, 111, 3);
     game.load.spritesheet('f2', 'images/f2.png', 200, 111, 3);
     game.load.spritesheet('f3', 'images/f3.png', 143, 90, 3);
@@ -33,6 +43,8 @@ var loadState = {
     game.load.spritesheet('f11', 'images/f11.png', 55, 24, 3);
     game.load.spritesheet('f12', 'images/f12.png', 55, 24, 3);
     game.load.spritesheet('throw_btn', 'images/throw_btn.png', 180, 130, 2)
+    game.load.spritesheet('box', 'images/box.png', 196, 189, 2)
+    game.load.spritesheet('star', 'images/star.png', 35, 34, 2)
   },
 
   create: function() {
