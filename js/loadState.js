@@ -27,10 +27,13 @@ var loadState = {
     game.load.image('box_guess_panel', 'images/box_guess_panel.png')
     game.load.image('box_less_btn', 'images/box_less_btn.png')
     game.load.image('box_great_btn', 'images/box_great_btn.png')
+    game.load.image('message', 'images/message.png')
+    game.load.image('box_quit_frame', 'images/box_quit_frame.png')
+    game.load.image('confirm_btn', 'images/confirm_btn.png')
+    game.load.image('continue_btn', 'images/continue_btn.png')
 
-
-    game.load.spritesheet('f1', 'images/f1.png', 200, 111, 3);
-    game.load.spritesheet('f2', 'images/f2.png', 200, 111, 3);
+    game.load.spritesheet('f1', 'images/f1.png', 202, 111, 3);
+    game.load.spritesheet('f2', 'images/f2.png', 202, 111, 3);
     game.load.spritesheet('f3', 'images/f3.png', 143, 90, 3);
     game.load.spritesheet('f4', 'images/f4.png', 143, 90, 3);
     game.load.spritesheet('f5', 'images/f5.png', 109, 50, 3);

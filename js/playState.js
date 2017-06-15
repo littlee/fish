@@ -6,6 +6,15 @@ var textStyle = {
   fill: '#fff'
 }
 
+var pearlNumStyle = {
+  fill: '#fff',
+  stroke: '#181D3B',
+  strokeThickness: 5,
+  fontSize: 72,
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle'
+}
+
 var fishWidth = {
   f1: 200,
   f2: 200,
@@ -84,26 +93,26 @@ var playState = {
     this.fishes = game.add.group()
     this.fishes.enableBody = true
     this.fishes.physicsBodyType = Phaser.Physics.ARCADE
-    // for (var i = 0; i < 10; i++) {
-    //   var r = randomInt(1, 12)
-    //   var headOnLeft = r % 2 !== 0
-    //   var key = 'f' + r
-    //   var x = getInitFishX(headOnLeft, key)
-    //   var y = getInitFishY()
-    //   var fishItem = this.fishes.create(x, y, key)
-    //   fishItem.body.velocity.x = getInitFishVelocity(headOnLeft)
-    //   fishItem.body.gravity.x = getInitFishGravity(headOnLeft)
-    // }
-    // this.fishes.callAll('animations.add', 'animations', 'swim')
-    // this.fishes.callAll('animations.play', 'animations', 'swim', 10, true)
-    // this.fishes.setAll('checkWorldBounds', true)
-    // this.fishes.setAll('outOfBoundsKill', true)
-    // this.fishes.setAll('anchor.x', 0.5)
-    // this.fishes.setAll('anchor.y', 0.5)
+    for (var i = 0; i < 10; i++) {
+      var r = randomInt(1, 12)
+      var headOnLeft = r % 2 !== 0
+      var key = 'f' + r
+      var x = getInitFishX(headOnLeft, key)
+      var y = getInitFishY()
+      var fishItem = this.fishes.create(x, y, key)
+      fishItem.body.velocity.x = getInitFishVelocity(headOnLeft)
+      fishItem.body.gravity.x = getInitFishGravity(headOnLeft)
+    }
+    this.fishes.callAll('animations.add', 'animations', 'swim')
+    this.fishes.callAll('animations.play', 'animations', 'swim', 10, true)
+    this.fishes.setAll('checkWorldBounds', true)
+    this.fishes.setAll('outOfBoundsKill', true)
+    this.fishes.setAll('anchor.x', 0.5)
+    this.fishes.setAll('anchor.y', 0.5)
 
-    // game.time.events.loop(1000, this._updateFishesMove, this)
-    // game.time.events.loop(500, this._updateFishesAdd, this)
-    // game.time.events.loop(500, this._updateFishesCatch, this)
+    game.time.events.loop(1000, this._updateFishesMove, this)
+    game.time.events.loop(500, this._updateFishesAdd, this)
+    game.time.events.loop(100, this._updateFishesCatch, this)
 
     this.betPop = game.add.group()
     this.betPopBg = game.add.sprite(53, 650, 'bet_pop')
@@ -264,6 +273,7 @@ var playState = {
     this.fishScoreText.alpha = 0
 
     /* 宝箱界面 */
+    this.boxMainGroup = game.add.group()
     this.overlay = game.add.image(0, 0, 'overlay')
     this.boxFrame = game.add.image(21, 25, 'box_frame')
     this.boxQuitBtn = game.add.button(25, 60, 'box_quit_btn', this._quitBox, this)
@@ -275,7 +285,14 @@ var playState = {
       boundsAlignV: 'middle'
     })
     this.boxCoinText.setTextBounds(270, 350, 120, 50)
+    this.boxMainGroup.add(this.overlay)
+    this.boxMainGroup.add(this.boxFrame)
+    this.boxMainGroup.add(this.boxQuitBtn)
+    this.boxMainGroup.add(this.boxAddCoinBtn)
+    this.boxMainGroup.add(this.boxCoinText)
+    this.boxMainGroup.visible = false
 
+    // 步骤文字
     this.boxStepText = game.add.text(0, 0, this._boxStep, {
       fill: '#fff',
       stroke: '#000',
@@ -285,30 +302,98 @@ var playState = {
       boundsAlignV: 'middle'
     })
     this.boxStepText.setTextBounds(100, 500, 450, 55)
+    this.boxMainGroup.add(this.boxStepText)
 
+    // 盒子左
     this.boxLeft = game.add.sprite(75, 640, 'box')
     this.boxLeft.inputEnabled = true
     this.boxLeft.events.onInputDown.add(this._openBoxLeft, this)
-    this.pearlLeft = game.add.image(104, 600, 'pearl')
+    this.boxMainGroup.add(this.boxLeft)
 
+    // 珍珠左
+    this.pearlLeftGroup = game.add.group()
+    this.pearlLeft = game.add.image(104, 600, 'pearl')
+    this.pearlLeftNum = game.add.text(0, 0, this._pearlLeftNum, pearlNumStyle)
+    this.pearlLeftNum.setShadow(0, 0, 'rgba(255,255,74,0.5)', 10)
+    this.pearlLeftNum.setTextBounds(104, 600, 119, 119)
+    this.pearlLeftGroup.add(this.pearlLeft)
+    this.pearlLeftGroup.add(this.pearlLeftNum)
+    this.pearlLeftGroup.visible = false
+    this.boxMainGroup.add(this.pearlLeftGroup)
+
+    // 盒子右
     this.boxRight = game.add.sprite(375, 640, 'box')
     this.boxRight.inputEnabled = true
     this.boxRight.events.onInputDown.add(this._openBoxRight, this)
-    this.pearlRight = game.add.image(412, 600, 'pearl')
+    this.boxMainGroup.add(this.boxRight)
 
+    // 珍珠右
+    this.pearlRightGroup = game.add.group()
+    this.pearlRight = game.add.image(412, 600, 'pearl')
+    this.pearlRightNum = game.add.text(0, 0, this._pearlRightNum, pearlNumStyle)
+    this.pearlRightNum.setShadow(0, 0, 'rgba(255,255,74,0.5)', 10)
+    this.pearlRightNum.setTextBounds(412, 600, 119, 119)
+    this.pearlRightGroup.add(this.pearlRight)
+    this.pearlRightGroup.add(this.pearlRightNum)
+    this.pearlRightGroup.visible = false
+    this.boxMainGroup.add(this.pearlRightGroup)
+
+    // 猜大小
+    this.boxGuessGroup = game.add.group()
     this.boxGuessPanel = game.add.image(game.world.centerX, 580, 'box_guess_panel')
     this.boxGuessPanel.anchor.setTo(0.5, 0)
-
     this.boxGreatBtn = game.add.button(game.world.centerX, 597, 'box_great_btn', this._guessGreat, this)
     this.boxGreatBtn.anchor.setTo(0.5, 0)
     this.boxLessBtn = game.add.button(game.world.centerX, 712, 'box_less_btn', this._guessLess, this)
     this.boxLessBtn.anchor.setTo(0.5, 0)
+    this.boxGuessGroup.add(this.boxGuessPanel)
+    this.boxGuessGroup.add(this.boxGreatBtn)
+    this.boxGuessGroup.add(this.boxLessBtn)
+    this.boxGuessGroup.visible = false
+    this.boxMainGroup.add(this.boxGuessGroup)
 
+
+    // 星星
     this.starGroup = game.add.group()
     for(var k = 0; k < 10; k++) {
       this.starGroup.create(54 + k * 54, 900, 'star')
     }
     this.starGroup.children[0].frame = 1
+    this.boxMainGroup.add(this.starGroup)
+
+
+    // 退出确认
+    this.boxQuitGroup = game.add.group()
+    this.boxQuitOverlay = game.add.image(0, 0, 'overlay')
+    this.boxQuitFrame = game.add.image(game.world.centerX, game.world.centerY, 'box_quit_frame')
+    this.boxQuitFrame.anchor.setTo(0.5, 0.5)
+    this.boxConfirmBtn = game.add.button(112, 560, 'confirm_btn', this._confirmQuit, this)
+    this.boxContinueBtn = game.add.button(339, 560, 'continue_btn', this._continueBox, this)
+    this.boxQuitGroup.add(this.boxQuitOverlay)
+    this.boxQuitGroup.add(this.boxQuitFrame)
+    this.boxQuitGroup.add(this.boxConfirmBtn)
+    this.boxQuitGroup.add(this.boxContinueBtn)
+    this.boxQuitGroup.visible = false
+    this.boxMainGroup.add(this.boxQuitGroup)
+
+    // 消息
+    this.messageGroup = game.add.group()
+    this.messageOverlay = game.add.image(0, 0, 'overlay')
+    this.message = game.add.image(0, game.world.centerY, 'message')
+    this.message.anchor.setTo(0, 0.5)
+    this.messageText = game.add.text(0, 0, '翻倍的金豆将从您的账户扣除', {
+      fill: '#fff',
+      fontSize: 28,
+      boundsAlignH: 'center',
+      boundsAlignV: 'middle'
+    })
+    this.messageText.setTextBounds(0, 450, 640, 132)
+    this.messageGroup.add(this.messageOverlay)
+    this.messageGroup.add(this.message)
+    this.messageGroup.add(this.messageText)
+    this.messageGroup.visible = false
+    this.boxMainGroup.add(this.messageGroup)
+
 
     this.ddd = new Phaser.Rectangle(100, 495, 450, 55)
   },
@@ -338,6 +423,8 @@ var playState = {
   // 宝箱
   _boxCoin: 100,
   _boxStep: '任选一个宝箱（内含数字0-9）打开',
+  _pearlLeftNum: 6,
+  _pearlRightNum: 9,
 
 
   _updateFishCount: function() {
@@ -562,6 +649,10 @@ var playState = {
       }
     }
 
+    if (game.rnd.sign() === 1) {
+      get = false
+    }
+
     if (get) {
       fish.catched = true
       fish.body.velocity.x = 0
@@ -605,5 +696,13 @@ var playState = {
 
   _guessLess: function() {
     console.log('less')
+  },
+
+  _confirmQuit: function() {
+    console.log('confirm')
+  },
+
+  _continueBox: function() {
+    console.log('continue')
   }
 }
