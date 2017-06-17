@@ -1,5 +1,68 @@
 var Phaser = window.Phaser
 var game = window.game
+var req = window.superagent
+
+function getFishCoin(data, cb) {
+  /*req
+    .get('/get/fish/coin')
+    .query(data)
+    .end(function(err, res) {
+      if (err) {
+        return err
+      }
+      cb && cb(res.text)
+    })*/
+
+  // 模拟随机返回 100 - 500 金币
+  setTimeout(function() {
+    cb(game.rnd.between(100, 500))
+  }, 100)
+}
+
+function getLeftBoxNum(data, cb) {
+  /*req
+    .get('/get/left/num')
+    .query(data)
+    .end(function(err, res) {
+      if (err) {
+        return err
+      }
+      cb && cb(res.text)
+    })*/
+
+  // 模拟随机返回 0 - 9
+  setTimeout(function() {
+    cb(game.rnd.between(0, 9))
+  }, 100)
+}
+
+function getRightBoxNum(data, cb) {
+  /*req
+    .get('/get/right/num')
+    .query(data)
+    .end(function(err, res) {
+      if (err) {
+        return err
+      }
+      cb && cb(res.text)
+    })*/
+
+  // 模拟随机返回 0 - 9
+  setTimeout(function() {
+    cb(game.rnd.between(0, 9))
+  }, 100)
+}
+
+function compareNum(left, right) {
+  // 没有相等的情况
+  if (left - right > 0) {
+    return 'lt'
+  }
+  return 'gt'
+}
+
+
+var WITHDRAW_TIME = 10000
 
 var textStyle = {
   font: '20px sans-serif',
@@ -28,21 +91,6 @@ var fishWidth = {
   f10: 47,
   f11: 55,
   f12: 55
-}
-
-var fishFactor = {
-  f1: 15,
-  f2: 15,
-  f3: 3,
-  f4: 3,
-  f5: 2,
-  f6: 2,
-  f7: 1,
-  f8: 1,
-  f9: 0.6,
-  f10: 0.6,
-  f11: 0.3,
-  f12: 0.3
 }
 
 function randomInt(a, b) {
@@ -110,9 +158,8 @@ var playState = {
     this.fishes.setAll('anchor.x', 0.5)
     this.fishes.setAll('anchor.y', 0.5)
 
-    game.time.events.loop(1000, this._updateFishesMove, this)
-    game.time.events.loop(500, this._updateFishesAdd, this)
-    game.time.events.loop(100, this._updateFishesCatch, this)
+    this._tMove = game.time.events.loop(1000, this._updateFishesMove, this)
+    this._tAdd = game.time.events.loop(500, this._updateFishesAdd, this)
 
     this.betPop = game.add.group()
     this.betPopBg = game.add.sprite(53, 650, 'bet_pop')
@@ -193,7 +240,10 @@ var playState = {
       'throw_btn',
       this._throwBtnDown,
       this,
-      0,0,1,0
+      0,
+      0,
+      1,
+      0
     )
     this.throwBtn.anchor.set(0.5, 1)
 
@@ -230,32 +280,46 @@ var playState = {
       boundsAlignH: 'center',
       boundsAlignV: 'middle'
     })
-    this.currentCoinText.setTextBounds(172, 35, 110, 44)
+    this.currentCoinText.setTextBounds(172, 40, 110, 44)
 
     this.coins = game.add.group()
     this.coinsTween = []
     this.coinsTweenChain = []
     for (var j = 0; j < 10; j++) {
       var coinItem = this.coins.create(100, 100, 'coin')
-      this.coinsTween[j] = game.add.tween(coinItem).to({
-        x: 200,
-        y: 50
-      }, 500, Phaser.Easing.Cubic.Out, false, 100 + j * 150)
-      this.coinsTweenChain[j] = game.add.tween(coinItem).to({
-        alpha: 0
-      }, 500, Phaser.Easing.Cubic.Out, false)
+      this.coinsTween[j] = game.add.tween(coinItem).to(
+        {
+          x: 200,
+          y: 50
+        },
+        500,
+        Phaser.Easing.Cubic.Out,
+        false,
+        100 + j * 150
+      )
+      this.coinsTweenChain[j] = game.add.tween(coinItem).to(
+        {
+          alpha: 0
+        },
+        500,
+        Phaser.Easing.Cubic.Out,
+        false
+      )
       this.coinsTween[j].chain(this.coinsTweenChain[j])
     }
     this.coins.setAll('alpha', 0)
 
     this.fishCountGroup = game.add.group()
     this.fishCount = game.add.sprite(0, 285, 'fish_count')
-    this.fishCountText = game.add.text(95, 265, this._fishCount, {
+    this.fishCountText = game.add.text(0, 0, '22', {
       fill: '#fff',
       stroke: '#003248',
       strokeThickness: 4,
-      fontSize: 64
+      fontSize: 50,
+      boundsAlignH: 'center',
+      boundsAlignV: 'middle'
     })
+    this.fishCountText.setTextBounds(85, 280, 70, 55)
     this.fishCountText.setShadow(2, 2, 'rgba(6,68,142,0.7)', 1)
     this.fishCountGroup.add(this.fishCount)
     this.fishCountGroup.add(this.fishCountText)
@@ -276,8 +340,20 @@ var playState = {
     this.boxMainGroup = game.add.group()
     this.overlay = game.add.image(0, 0, 'overlay')
     this.boxFrame = game.add.image(21, 25, 'box_frame')
-    this.boxQuitBtn = game.add.button(25, 60, 'box_quit_btn', this._quitBox, this)
-    this.boxAddCoinBtn = game.add.button(417, 350, 'box_add_coin', this._boxAddCoin, this)
+    this.boxQuitBtn = game.add.button(
+      25,
+      60,
+      'box_quit_btn',
+      this._quitBox,
+      this
+    )
+    this.boxAddCoinBtn = game.add.button(
+      417,
+      350,
+      'box_add_coin',
+      this._boxAddCoin,
+      this
+    )
     this.boxCoinText = game.add.text(0, 0, this._boxCoin, {
       fontSize: 30,
       fill: '#fff',
@@ -293,7 +369,7 @@ var playState = {
     this.boxMainGroup.visible = false
 
     // 步骤文字
-    this.boxStepText = game.add.text(0, 0, this._boxStep, {
+    this.boxStepText = game.add.text(0, 0, '', {
       fill: '#fff',
       stroke: '#000',
       strokeThickness: 4,
@@ -306,8 +382,6 @@ var playState = {
 
     // 盒子左
     this.boxLeft = game.add.sprite(75, 640, 'box')
-    this.boxLeft.inputEnabled = true
-    this.boxLeft.events.onInputDown.add(this._openBoxLeft, this)
     this.boxMainGroup.add(this.boxLeft)
 
     // 珍珠左
@@ -323,8 +397,6 @@ var playState = {
 
     // 盒子右
     this.boxRight = game.add.sprite(375, 640, 'box')
-    this.boxRight.inputEnabled = true
-    this.boxRight.events.onInputDown.add(this._openBoxRight, this)
     this.boxMainGroup.add(this.boxRight)
 
     // 珍珠右
@@ -340,11 +412,27 @@ var playState = {
 
     // 猜大小
     this.boxGuessGroup = game.add.group()
-    this.boxGuessPanel = game.add.image(game.world.centerX, 580, 'box_guess_panel')
+    this.boxGuessPanel = game.add.image(
+      game.world.centerX,
+      580,
+      'box_guess_panel'
+    )
     this.boxGuessPanel.anchor.setTo(0.5, 0)
-    this.boxGreatBtn = game.add.button(game.world.centerX, 597, 'box_great_btn', this._guessGreat, this)
+    this.boxGreatBtn = game.add.button(
+      game.world.centerX,
+      597,
+      'box_great_btn',
+      this._guessGreat,
+      this
+    )
     this.boxGreatBtn.anchor.setTo(0.5, 0)
-    this.boxLessBtn = game.add.button(game.world.centerX, 712, 'box_less_btn', this._guessLess, this)
+    this.boxLessBtn = game.add.button(
+      game.world.centerX,
+      712,
+      'box_less_btn',
+      this._guessLess,
+      this
+    )
     this.boxLessBtn.anchor.setTo(0.5, 0)
     this.boxGuessGroup.add(this.boxGuessPanel)
     this.boxGuessGroup.add(this.boxGreatBtn)
@@ -352,23 +440,36 @@ var playState = {
     this.boxGuessGroup.visible = false
     this.boxMainGroup.add(this.boxGuessGroup)
 
-
     // 星星
     this.starGroup = game.add.group()
-    for(var k = 0; k < 10; k++) {
+    for (var k = 0; k < 10; k++) {
       this.starGroup.create(54 + k * 54, 900, 'star')
     }
-    this.starGroup.children[0].frame = 1
     this.boxMainGroup.add(this.starGroup)
-
 
     // 退出确认
     this.boxQuitGroup = game.add.group()
     this.boxQuitOverlay = game.add.image(0, 0, 'overlay')
-    this.boxQuitFrame = game.add.image(game.world.centerX, game.world.centerY, 'box_quit_frame')
+    this.boxQuitFrame = game.add.image(
+      game.world.centerX,
+      game.world.centerY,
+      'box_quit_frame'
+    )
     this.boxQuitFrame.anchor.setTo(0.5, 0.5)
-    this.boxConfirmBtn = game.add.button(112, 560, 'confirm_btn', this._confirmQuit, this)
-    this.boxContinueBtn = game.add.button(339, 560, 'continue_btn', this._continueBox, this)
+    this.boxConfirmBtn = game.add.button(
+      112,
+      560,
+      'confirm_btn',
+      this._confirmQuit,
+      this
+    )
+    this.boxContinueBtn = game.add.button(
+      339,
+      560,
+      'continue_btn',
+      this._continueBox,
+      this
+    )
     this.boxQuitGroup.add(this.boxQuitOverlay)
     this.boxQuitGroup.add(this.boxQuitFrame)
     this.boxQuitGroup.add(this.boxConfirmBtn)
@@ -381,7 +482,7 @@ var playState = {
     this.messageOverlay = game.add.image(0, 0, 'overlay')
     this.message = game.add.image(0, game.world.centerY, 'message')
     this.message.anchor.setTo(0, 0.5)
-    this.messageText = game.add.text(0, 0, '翻倍的金豆将从您的账户扣除', {
+    this.messageText = game.add.text(0, 0, '消息文字', {
       fill: '#fff',
       fontSize: 28,
       boundsAlignH: 'center',
@@ -394,8 +495,7 @@ var playState = {
     this.messageGroup.visible = false
     this.boxMainGroup.add(this.messageGroup)
 
-
-    this.ddd = new Phaser.Rectangle(100, 495, 450, 55)
+    this.ddd = new Phaser.Rectangle(90, 280, 70, 55)
   },
 
   update: function() {
@@ -419,14 +519,17 @@ var playState = {
   _currentLuckValue: 0,
   _t3: null,
   _t10: null,
+  _tMove: null,
+  _tAdd: null,
+  _tCatch: null,
 
   // 宝箱
   _boxCoin: 100,
-  _boxStep: '任选一个宝箱（内含数字0-9）打开',
-  _pearlLeftNum: 6,
-  _pearlRightNum: 9,
+  _pearlLeftNum: 0,
+  _pearlRightNum: 0,
+  _boxStar: 0,
 
-
+  // 一竿多少鱼
   _updateFishCount: function() {
     this._fishCount++
     this.fishCountText.setText(this._fishCount)
@@ -444,17 +547,7 @@ var playState = {
     )
   },
 
-  _updateFishScore: function(sprite, tween, score) {
-    this._fishScore += score
-    this.fishScoreText.setText('+ ' + this._fishScore)
-    this.fishScoreText.x = -100
-    this.fishScoreText.alpha = 0
-    game.add.tween(this.fishScoreText).to({
-      x: 15,
-      alpha: 1
-    }, 500, Phaser.Easing.Cubic.Out, true)
-  },
-
+  // 钓鱼投注
   _changeBet: function(v) {
     this._currentBet = v
     this.notchBetText.setText(v)
@@ -468,6 +561,7 @@ var playState = {
     )
   },
 
+  // 点击钓鱼按钮
   _throwBtnDown: function() {
     if (this._fishing) {
       return
@@ -475,6 +569,7 @@ var playState = {
     this._throwPole()
   },
 
+  // 抛下鱼竿
   _throwPole: function() {
     this._fishing = true
     this.throwBtn.inputEnabled = false
@@ -488,49 +583,113 @@ var playState = {
       true
     )
 
-    this._t3 = game.time.events.add(3000, this._after3, this)
-    this._t10 = game.time.events.add(10000, this._after10, this)
+    // 减去投注金币
+    this._currentCoin -= this._currentBet
+    this.currentCoinText.setText(this._currentCoin)
+
+    // 重置分数
+    this._fishScore = 0
+    this._fishCount = 0
+
+    // this._t3 = game.time.events.add(3000, this._after3, this)
+    this._t10 = game.time.events.add(WITHDRAW_TIME, this._after10, this)
+
+    this._tCatch = game.time.events.loop(200, this._updateFishesCatch, this)
   },
 
+  _updateLuckyValue: function() {
+    if (this._currentLuckValue < 10) {
+      this._currentLuckValue++
+    }
+    else {
+      this._currentLuckValue = 0
+    }
+    this.luckyValuePro.scale.x = this._currentLuckValue / 10
+  },
+
+  // 3 秒钟后
   _after3: function() {
     if (this._fishCount === 0) {
-      this._withdrawPole()
       game.time.events.remove(this._t10)
-      // 增加幸运值
-      if (this._currentLuckValue === 10) {
-        // 打开宝箱
-      }
-      else {
-        this._currentLuckValue++
-        this.luckyValuePro.scale.x = this._currentLuckValue / 10
-      }
+      this._withdrawPole()
     }
   },
 
+  // 10 秒钟后
   _after10: function() {
     this._withdrawPole()
-
-    // 增加金币
   },
 
-  _slideCoins: function() {
+  // 金币注入
+  _slideCoins: function(score) {
+    // 弹出分数
+    this._fishScore = score
+    this.fishScoreText.setText('+ ' + this._fishScore)
+    this.fishScoreText.x = -100
+    this.fishScoreText.alpha = 0
+    var tw = game.add.tween(this.fishScoreText).to(
+      {
+        x: 15,
+        alpha: 1
+      },
+      500,
+      Phaser.Easing.Cubic.Out,
+      true
+    )
+    tw.onComplete.addOnce(function() {
+      game.time.events.add(
+        1000,
+        function() {
+          this.fishScoreText.x = -100
+          this.fishScoreText.alpha = 0
+          this.fishCountGroup.x = -187
+          this.fishCountGroup.alpha = 0
+        },
+        this
+      )
+    }, this)
+
     this.coins.setAll('alpha', 1)
     this.coins.setAll('x', 100)
     this.coins.setAll('y', 100)
     this.coinsTween.forEach(function(item) {
       item.start()
     })
+
+    this.coinsTween[this.coinsTween.length - 1].onComplete.addOnce(function() {
+      this._currentCoin += score
+      this.currentCoinText.setText(this._currentCoin)
+
+      this._currentWin += score
+      this.notchWinText.setText('赢得：' + this._currentWin)
+
+      if (this._fishCount >= 3) {
+        //==== 进入宝箱 =====
+        this._entetBox()
+      }
+    }, this)
   },
 
+  // 收回鱼竿
   _withdrawPole: function() {
     this._fishing = false
     this.throwBtn.inputEnabled = true
     this.throwBtn.alpha = 1
 
-    this._fishScore = 0
-    this._fishCount = 0
+    game.time.events.remove(this._tCatch)
 
-    this._slideCoins()
+    if (this._fishCount === 0) {
+      this._updateLuckyValue()
+    }
+    else {
+      // 在这里发请求获取获得金币
+      getFishCoin(
+        {},
+        function(score) {
+          this._slideCoins(score)
+        }.bind(this)
+      )
+    }
 
     game.add.tween(this.fishPole).to(
       {
@@ -538,26 +697,6 @@ var playState = {
       },
       500,
       Phaser.Easing.Back.Out,
-      true
-    )
-
-    game.add.tween(this.fishCountGroup).to(
-      {
-        x: -187,
-        alpha: 0
-      },
-      500,
-      Phaser.Easing.Cubic.Out,
-      true
-    )
-
-    game.add.tween(this.fishScoreText).to(
-      {
-        x: -100,
-        alpha: 0
-      },
-      500,
-      Phaser.Easing.Cubic.Out,
       true
     )
 
@@ -631,8 +770,6 @@ var playState = {
     var headOnLeft = isHeadOnLeft(fish.key)
     var get = false
 
-    // console.log(fish.x)
-
     if (headOnLeft) {
       if (
         fish.x > game.world.centerX + fish.width / 2 &&
@@ -649,9 +786,9 @@ var playState = {
       }
     }
 
-    if (game.rnd.sign() === 1) {
-      get = false
-    }
+    // if (game.rnd.sign() === 1) {
+    //   get = true
+    // }
 
     if (get) {
       fish.catched = true
@@ -668,41 +805,122 @@ var playState = {
         true
       )
       tw.onComplete.addOnce(this._updateFishCount, this)
-      // 计算金币
-      tw.onComplete.addOnce(this._updateFishScore, this, 1, 10)
     }
   },
 
+  // =========
   // 宝箱函数
+  _entetBox: function() {
+    this.boxMainGroup.visible = true
+    this.notchBet.inputEnabled = false
+    game.time.events.remove(this._tMove)
+    game.time.events.remove(this._tAdd)
+
+    this._boxCoin = this._fishScore
+    this.boxCoinText.setText(this._boxCoin)
+
+    this._startBox()
+  },
+
+  _startBox: function() {
+    // 重置界面
+    this.pearlRightGroup.visible = false
+    this.boxGuessGroup.visible = false
+    this.boxRight.frame = 0
+
+    if (this._boxStar >= 10) {
+      this._showMessage('宝箱游戏结束', function() {
+        this._confirmQuit()
+      }.bind(this))
+      return
+    }
+
+    //发请求获取左边数字
+    getLeftBoxNum({}, function(num) {
+      this._incStar()
+      this._pearlLeftNum = num
+      this.pearlLeftNum.setText(this._pearlLeftNum)
+      this.pearlLeftGroup.visible = true
+      this.boxLeft.frame = 1
+      this.boxGuessGroup.visible = true
+      this.boxStepText.setText('猜猜另一个箱子比' + num + '大还是小（范围0-9）')
+
+    }.bind(this))
+  },
+
   _quitBox: function() {
     console.log('quit')
+    this.boxQuitGroup.visible = true
+  },
+
+  _incStar: function() {
+    this._boxStar++
+    this.starGroup.children[this._boxStar - 1].frame = 1
   },
 
   _boxAddCoin: function() {
-    console.log('add')
+    this._boxCoin *= 2
+    this.boxCoinText.setText(this._boxCoin)
   },
+  
+  _openBoxRight: function(guess) {
 
-  _openBoxLeft: function() {
-    this.boxLeft.frame = 1
-  },
+    // 获取右边数字
+    getRightBoxNum({}, function(num) {
+      this._pearlRightNum = num
+      this.pearlRightNum.setText(this._pearlRightNum)
+      this.pearlRightGroup.visible = true
+      this.boxRight.frame = 1
+      
+      if (compareNum(this._pearlLeftNum, this._pearlRightNum) === guess) {
+        // 猜对了
+        this.boxStepText.setText('恭喜您猜对了，获得' + this._boxCoin + '金币')
+        this._boxAddCoin()
+        game.time.events.add(2000, function() {
+          this._startBox()
+        }, this)
+      }
+      else {
+        // 猜错了
+        this.boxStepText.setText('很抱歉您猜错了，3秒后自动退出')
+        game.time.events.add(3000, function() {
+          this._confirmQuit()
+        }, this)
+      }
 
-  _openBoxRight: function() {
-    this.boxRight.frame = 1
+    }.bind(this))
+
   },
 
   _guessGreat: function() {
     console.log('great')
+    this._openBoxRight('gt')
   },
 
   _guessLess: function() {
     console.log('less')
+    this._openBoxRight('lt')
   },
 
   _confirmQuit: function() {
     console.log('confirm')
+    this.boxMainGroup.visible = false
+    this.notchBet.inputEnabled = true
+    this._tMove = game.time.events.loop(1000, this._updateFishesMove, this)
+    this._tAdd = game.time.events.loop(500, this._updateFishesAdd, this)
   },
 
   _continueBox: function() {
     console.log('continue')
+    this.boxQuitGroup.visible = false
+  },
+
+  _showMessage: function(text, cb) {
+    this.messageText.setText(text)
+    this.messageGroup.visible = true
+    game.time.events.add(3000, function() {
+      this.messageGroup.visible = false
+      cb && cb()
+    }, this)
   }
 }
